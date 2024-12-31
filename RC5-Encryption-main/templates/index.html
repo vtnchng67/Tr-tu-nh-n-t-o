@@ -1,0 +1,222 @@
+<html>
+    <head>
+        <link rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+        <!-- Popper JS -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <!-- Latest compiled JavaScript -->
+        <script
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="{{ url_for('static',filename='javascript/main.js') }}"></script>
+    </head>
+    <style>
+    h1{
+        display: flex;
+        justify-content: center;
+        padding: 100px;
+        background-color: #f2f2f2;
+        margin-bottom: 50px;
+    }
+
+    .key,
+    .round,
+    .wordsize,
+    .submit,
+    .encrypt-text-input,
+    .decrypt-text-input{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-content: center;
+    }
+    textarea{
+        color: white;
+        font: 1.2rem Inconsolata, monospace;
+        height: 500px;
+        width: 100%;
+        background-color: black;
+        float: right;
+    }
+    .encrypt{
+        height: fit-content;
+    }
+    </style>
+    <body>
+        <h1>RC5 Encryption</h1>
+        <div class="container">
+            <div class="row">
+                <div class="input-group col-2 key">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"
+                            id="inputGroup-sizing-default">Key</span>
+                    </div>
+                    <input type="text" class="form-control"
+                        aria-label="Default" name="key" id="key"
+                        aria-describedby="inputGroup-sizing-default">
+                </div>
+                <div class="input-group col-5 wordsize">
+                    <span class="input-group-text"
+                        id="inputGroup-sizing-default">Word size</span>
+                    <div class="btn-group btn-group-toggle"
+                        data-toggle="buttons">
+                        <label class="btn btn-outline-secondary active">
+                            <input type="radio" name="options" id="options"
+                                autocomplete="off" value="16" > 16
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="radio" name="options" value="32"
+                                id="options" autocomplete="off" checked> 32
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="radio" name="options" value="64"
+                                id="options" autocomplete="off"> 64
+                        </label>
+                    </div>
+                </div>
+                <div class="input-group col-2 round">
+                    <span class="input-group-text"
+                        id="inputGroup-sizing-default">Round</span>
+                    <input class="form-control" type="number" value="12"
+                        id="round" name="round">
+                </div>
+                <div class="input-group col-3 submit">
+                    <button type="submit" class="btn btn-outline-secondary">Assign key</button>
+                </div>
+            </div>
+        </br>
+
+            <div class="row">
+
+                <div class="col-4 ">
+                    <h3>Try with text</h3>
+                <hr style="text-align:left;margin-left:0;height:1px;border-width:0;color:black;background-color:black">
+                    <label for="text">Input your text for encrypt: </label>
+                    <div class="encrypt-text-input">
+                        <input type="email" class="form-control" id="encrypt-text"
+                        placeholder="Enter text">
+                        <button class="btn btn-outline-secondary encrypt">ENCRYPT</button>
+                    </div>
+
+                    
+                </br>
+                    <label for="text">Input your text for decrypt: </label>
+                    <div class="decrypt-text-input">
+                        <input type="email" class="form-control" id="decrypt-text"
+                        placeholder="Enter text">
+                        <button class="btn btn-outline-secondary decrypt">DECRYPT</button>
+                    </div>
+                </br>
+                <h3>Try with file</h3>
+                <hr style="text-align:left;margin-left:0;height:1px;border-width:0;color:black;background-color:black">
+                <label for="text">Put your file here to encrypt file: </label>
+                <div class="custom-file">
+                    <input type="file" id="customFile" name="file">
+                  </div>
+                  
+                <button class="btn btn-outline-secondary encryptFile">ENCRYPT FILE</button>
+                <button class="btn btn-outline-secondary decryptFile">DECRYPT FILE</button>
+                </div>
+                
+                <div class="form-group col-8">
+                    <textarea></textarea>
+                </div>
+            </div>
+        </div>
+        </div>
+    </body>
+    <script>
+        $(document).ready(()=>{
+            $(".submit").on("click", (e)=>{
+                e.preventDefault()
+                var key = $("#key").val()
+                var wordSize = $("input:checked" ).val()
+                var round = $("#round").val()
+                $("textarea").append(">> ============== RC5-"+wordSize+"/"+key.length+"/"+round+" ==============\n")
+                $.post("/key",{
+                    key: key,
+                    w: wordSize,
+                    r: round
+                },(data, status)=>{
+                    if(status === 'success')
+                    $("textarea").append(">> successfully align key ...\n")
+                    $("textarea").append(">> key: "+data.key+"\n")
+                })
+            })
+
+            $(".encrypt").on("click", () => {
+                $.post("/encrypt",{
+                    text: $("#encrypt-text").val()
+                },(data, status)=>{
+                    $("textarea").append(">> ============== encrypt ==============\n")
+                    $("textarea").append(data.data)
+                    $("textarea").append(">>\n")
+                    $("#decrypt-text").val(data.encryptCode)
+                    $("textarea").scrollTop($("textarea")[0].scrollHeight)
+                })
+            })
+
+            $(".decrypt").on("click", () => {
+                $.post("/decrypt",{
+                    text: $("#decrypt-text").val()
+                },(data, status)=>{
+                    $("textarea").append(">> ============== decrypt ==============\n")
+                    $("textarea").append(data.data)
+                    $("textarea").append(">>\n")
+                    console.log($("textarea").scrollTop.toString())
+                    $("textarea").scrollTop($("textarea")[0].scrollHeight)
+                })
+            })
+
+            $('#customFile').change(function(e){
+                var file = this.files[0];
+                var form = new FormData();
+                form.append('file', file);
+                $.ajax({
+                    url : "/readFile",
+                    type: "POST",
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data : form,
+                    success: function(response){
+                        $("textarea").append(">> ============== file content ==============\n")
+                        $("textarea").append(response.data)
+                        $("textarea").append(">>\n")
+                        $("textarea").scrollTop($("textarea")[0].scrollHeight)
+                    }
+                });
+            });
+
+            
+            $(".encryptFile").on("click", () => {
+                $.post("/encryptFile",(data, status)=>{
+                    $("textarea").append(">> ============== encrypt file ==============\n")
+                    $("textarea").append(data.data)
+                    $("textarea").append(">>\n")
+                    $("textarea").scrollTop($("textarea")[0].scrollHeight)
+                    var a = document.createElement('a');
+                    a.href = data.url;
+                    a.download = 'download';
+                    a.click();
+                })
+            })
+
+            $(".decryptFile").on("click", () => {
+                $.post("/decryptFile",(data, status)=>{
+                    $("textarea").append(">> ============== decrypt file ==============\n")
+                    $("textarea").append(data.data)
+                    $("textarea").append(">>\n")
+                    $("textarea").scrollTop($("textarea")[0].scrollHeight)
+                    var a = document.createElement('a');
+                    a.href = data.url;
+                    a.download = 'download';
+                    a.click();
+                })
+            })
+        })
+    </script>
+</html>
